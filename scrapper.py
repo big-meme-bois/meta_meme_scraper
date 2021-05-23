@@ -45,14 +45,15 @@ class RedditScrapper(Scrapper):
             'source': f'r/{metadata["subreddit"]}',
             'title': metadata['title'],
             'text': metadata['selftext'],
-            'created': datetime.fromtimestamp(metadata['created']),
-            'scrapped_at': datetime.now(),
+            'created': str(datetime.fromtimestamp(metadata['created'])),
+            'scrapped_at': str(datetime.now()),
             'like': metadata['ups'],
             'dislike': metadata['downs'],
             'like_ratio': metadata['ups'] / float(metadata['ups'] + metadata['downs']),
             'dislike_ratio': metadata['downs'] / float(metadata['ups'] + metadata['downs']),
             'picture_url': metadata['url_overridden_by_dest'],
-            'author': metadata['author']
+            'author': metadata['author'],
+            'comment_count': metadata['num_comments']
         }
 
         image = Scrapper._get_image_from_url(metadata['url_overridden_by_dest'])
