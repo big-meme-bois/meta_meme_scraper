@@ -1,5 +1,9 @@
-import json
+from typing import List
+from scrapper import Scrapper, RedditScrapper
 
 if __name__ == '__main__':
-    pdict = json.loads('{"a":1, "b": 2, "c":"hllo"}')
-    print(pdict)
+    scrappers: List[Scrapper] = [RedditScrapper()]
+
+    for scrapper in scrappers:
+        scrapper.get()
+        scrapper.present()
