@@ -22,4 +22,4 @@ if __name__ == '__main__':
     # test_repeats(RedditScrapper(), 5)
 
     scrapper = NineGAGScrapper()
-    scrapper.get()
+    print(scrapper.get())

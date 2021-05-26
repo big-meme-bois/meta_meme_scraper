@@ -9,7 +9,8 @@ import requests
 from PIL import Image
 
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+# from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options
 
 class Scrapper(ABC):
     name = None
@@ -69,17 +70,19 @@ class NineGAGScrapper(Scrapper):
     name = '9GAG Scrapper'
 
     @staticmethod
-    def __get_random_meme():
+    def __get_random_meme() -> BeautifulSoup:
         url = 'https://9gag.com/shuffle'
 
         options = Options()
         # options.headless = True
-        options.add_argument("--window-size=1920,1200")
-        options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        options.add_experimental_option('useAutomationExtension', False)
-        options.add_argument("--disable-blink-features=AutomationControlled")
-
-        driver = webdriver.Chrome(options=options)
+        # options.add_argument("--window-size=1920,1200")
+        # options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        # options.add_experimental_option('useAutomationExtension', False)
+        # options.add_argument("--disable-blink-features=AutomationControlled")
+        #
+        # driver = webdriver.Chrome(options=options)
+        options.headless = True
+        driver = webdriver.Firefox(options=options)
         driver.get(url)
         el_str = driver.find_elements_by_class_name('main-wrap')[0].get_attribute('innerHTML')
         # driver.save_screenshot('screenshot.png')
@@ -87,9 +90,7 @@ class NineGAGScrapper(Scrapper):
 
         soup = BeautifulSoup(el_str, 'html.parser')
 
-        sect = soup.find('a', {'class': 'section'}).contents[0]
-
-        return None
+        return soup
 
     @staticmethod
     def __get_meme_matadata(post_uid: str) -> Dict:
@@ -98,10 +99,12 @@ class NineGAGScrapper(Scrapper):
         return response[0]['data']['children'][0]['data']
 
     def get(self) -> Tuple:
-        random_meme = self.__get_random_meme()
+        rms = self.__get_random_meme() # rms -> random meme soup
+
+        section = rms.find('a', {'class': 'section'}).contents[0]
 
         curated_metadata = {
-            'source': None,
+            'source': f'9GAG:{section}',
             'title': None,
             'text': None,
             'created': None,
