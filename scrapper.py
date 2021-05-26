@@ -2,10 +2,14 @@ from datetime import datetime
 import json
 from abc import ABC, abstractmethod
 from typing import Dict, Tuple
+from bs4 import BeautifulSoup
+
 
 import requests
 from PIL import Image
 
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
 class Scrapper(ABC):
     name = None
@@ -59,3 +63,56 @@ class RedditScrapper(Scrapper):
         image = Scrapper._get_image_from_url(metadata['url_overridden_by_dest'])
 
         return curated_metadata, image
+
+
+class NineGAGScrapper(Scrapper):
+    name = '9GAG Scrapper'
+
+    @staticmethod
+    def __get_random_meme():
+        url = 'https://9gag.com/shuffle'
+
+        options = Options()
+        # options.headless = True
+        options.add_argument("--window-size=1920,1200")
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option('useAutomationExtension', False)
+        options.add_argument("--disable-blink-features=AutomationControlled")
+
+        driver = webdriver.Chrome(options=options)
+        driver.get(url)
+        el_str = driver.find_elements_by_class_name('main-wrap')[0].get_attribute('innerHTML')
+        # driver.save_screenshot('screenshot.png')
+        driver.quit()
+
+        soup = BeautifulSoup(el_str, 'html.parser')
+
+        sect = soup.find('a', {'class': 'section'}).contents[0]
+
+        return None
+
+    @staticmethod
+    def __get_meme_matadata(post_uid: str) -> Dict:
+        url = f'https://reddit.com/{post_uid}/.json'
+        response = requests.get(url, headers={'User-agent': 'Meta Meme Scrapper'}).json()
+        return response[0]['data']['children'][0]['data']
+
+    def get(self) -> Tuple:
+        random_meme = self.__get_random_meme()
+
+        curated_metadata = {
+            'source': None,
+            'title': None,
+            'text': None,
+            'created': None,
+            'scrapped_at': None,
+            'like': None,
+            'dislike': None,
+            'like_ratio': None,
+            'dislike_ratio': None,
+            'picture_url': None,
+            'author': None,
+            'comment_count': None
+        }
+
+        return curated_metadata, None
