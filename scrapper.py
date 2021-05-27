@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 from abc import ABC, abstractmethod
 from pprint import pprint
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 from bs4 import BeautifulSoup
 
 import requests
@@ -18,6 +18,9 @@ class Scrapper(ABC):
     @abstractmethod
     def get(self) -> Tuple:
         pass
+
+    def get_multiple(self, number) -> List[Tuple]:
+        return [self.get() for _ in range(number)]
 
     def identify(self):
         print(self.name)
