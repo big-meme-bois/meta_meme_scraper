@@ -36,5 +36,5 @@ def test_scrapper_multi_results(scrapper: Scrapper, number: int):
 
 if __name__ == '__main__':
     # test_scrapper_results(NineGAGScrapper())
-    test_scrapper_multi_results(RedditScrapper(), 5)
+    test_scrapper_multi_results(NineGAGScrapper(), 5)
     # test_repeats(NineGAGScrapper(), 100)

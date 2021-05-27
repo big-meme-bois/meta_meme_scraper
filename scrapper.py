@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from pprint import pprint
 from typing import Dict, Tuple, List
 from bs4 import BeautifulSoup
+import imagehash
 
 import requests
 from PIL import Image
@@ -21,6 +22,20 @@ class Scrapper(ABC):
 
     def get_multiple(self, number) -> List[Tuple]:
         return [self.get() for _ in range(number)]
+
+    def get_multiple_uniq(self, target) -> List[Tuple]:
+        raw_memes = self.get_multiple(target)
+        uniq_memes = []
+
+        hash_map = {}
+        for meta, img in raw_memes:
+            img_hash = imagehash.average_hash(img)
+
+            if img_hash not in hash_map:
+                uniq_memes.append((meta, img))
+                hash_map[img_hash] = True
+
+        return uniq_memes
 
     def identify(self):
         print(self.name)
