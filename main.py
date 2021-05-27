@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from scrapper import Scrapper, RedditScrapper, NineGAGScrapper
 import imagehash
 
@@ -18,8 +20,15 @@ def test_repeats(scrapper: Scrapper, target_count=100):
     print(f'Fetching done! Fetched {meme_count} memes, of which {uniq_meme_count} seemed unique!')
 
 
-if __name__ == '__main__':
-    # test_repeats(RedditScrapper(), 5)
+def test_scrapper(scrapper: Scrapper):
+    result = scrapper.get()
+    pprint(result[0])
+    result[1].show()
 
-    scrapper = NineGAGScrapper()
-    print(scrapper.get())
+
+if __name__ == '__main__':
+    test_repeats(NineGAGScrapper(), 5)
+
+    # test_scrapper(NineGAGScrapper())
+
+

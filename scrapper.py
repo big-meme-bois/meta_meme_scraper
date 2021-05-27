@@ -1,16 +1,16 @@
 from datetime import datetime
 import json
 from abc import ABC, abstractmethod
+from pprint import pprint
 from typing import Dict, Tuple
 from bs4 import BeautifulSoup
-
 
 import requests
 from PIL import Image
 
 from selenium import webdriver
-# from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.firefox.options import Options
+
 
 class Scrapper(ABC):
     name = None
@@ -69,53 +69,72 @@ class RedditScrapper(Scrapper):
 class NineGAGScrapper(Scrapper):
     name = '9GAG Scrapper'
 
-    @staticmethod
-    def __get_random_meme() -> BeautifulSoup:
+    def __init__(self):
+        self.__initialize_driver()
+
+    def __initialize_driver(self):
+        options = Options()
+        options.headless = True
+        self.driver = webdriver.Firefox(options=options)
+
+    def __del__(self):
+        self.driver.quit()
+
+    def __get_random_meme(self) -> BeautifulSoup:
         url = 'https://9gag.com/shuffle'
 
-        options = Options()
-        # options.headless = True
-        # options.add_argument("--window-size=1920,1200")
-        # options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        # options.add_experimental_option('useAutomationExtension', False)
-        # options.add_argument("--disable-blink-features=AutomationControlled")
-        #
-        # driver = webdriver.Chrome(options=options)
-        options.headless = True
-        driver = webdriver.Firefox(options=options)
-        driver.get(url)
-        el_str = driver.find_elements_by_class_name('main-wrap')[0].get_attribute('innerHTML')
-        # driver.save_screenshot('screenshot.png')
-        driver.quit()
+        success = False
+        while not success:
+            try:
+                self.driver.get(url)
+                success = True
+                break
+            except Exception:
+                self.__initialize_driver()
+
+        el_str = self.driver.find_elements_by_class_name('main-wrap')[0].get_attribute('innerHTML')
 
         soup = BeautifulSoup(el_str, 'html.parser')
 
         return soup
 
-    @staticmethod
-    def __get_meme_matadata(post_uid: str) -> Dict:
-        url = f'https://reddit.com/{post_uid}/.json'
-        response = requests.get(url, headers={'User-agent': 'Meta Meme Scrapper'}).json()
-        return response[0]['data']['children'][0]['data']
-
     def get(self) -> Tuple:
-        rms = self.__get_random_meme() # rms -> random meme soup
+        while True:
+            rms = self.__get_random_meme()  # rms -> random meme soup
 
-        section = rms.find('a', {'class': 'section'}).contents[0]
+            section = rms.find('a', {'class': 'section'}).contents[0]
+            title = rms.find('header').findChild('h1').contents[0]
 
-        curated_metadata = {
-            'source': f'9GAG:{section}',
-            'title': None,
-            'text': None,
-            'created': None,
-            'scrapped_at': None,
-            'like': None,
-            'dislike': None,
-            'like_ratio': None,
-            'dislike_ratio': None,
-            'picture_url': None,
-            'author': None,
-            'comment_count': None
-        }
+            post_meta = rms.find('p', {'class': 'post-meta'}).findChildren()
+            likes = post_meta[0].contents[0].replace(',', '').replace(' points', '')
+            comments = post_meta[1].contents[0].replace(',', '').replace(' comments', '')
 
-        return curated_metadata, None
+            post_tags = rms.find('div', {'class': 'post-tag'})
+            text = None
+
+            if post_tags:
+                text = ' '.join(['#' + tag.contents[0] for tag in post_tags.findChildren()])
+
+            image_post_div = rms.find('div', {'class': 'image-post'})
+
+            if image_post_div:
+                picture_url = image_post_div.findChild('img').attrs['src']
+
+                curated_metadata = {
+                    'source': f'9GAG:{section}',
+                    'title': title,
+                    'text': text,
+                    'created': None,
+                    'scrapped_at': str(datetime.now()),
+                    'like': likes,
+                    'dislike': None,
+                    'like_ratio': None,
+                    'dislike_ratio': None,
+                    'picture_url': picture_url,
+                    'author': None,
+                    'comment_count': comments
+                }
+
+                img = self._get_image_from_url(picture_url)
+
+                return curated_metadata, img
