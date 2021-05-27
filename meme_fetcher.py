@@ -40,7 +40,7 @@ def append_dictionary(unique_memes, submission, unique_memes_hashes):
                 'url': submission.url,
                 'name': submission.name,
                 'title': submission.title,
-                'timestamp': datetime.fromtimestamp(submission.created_utc),
+                'timestamp': str(datetime.fromtimestamp(submission.created_utc)),
                 'score': submission.score,
                 'upvote_ratio': submission.upvote_ratio,
                 'phash': str(imagehash.phash(get_image_from_url(submission.url)))
@@ -54,7 +54,7 @@ def get_image_from_url(url: str) -> Image:
     return Image.open(requests.get(url, stream=True).raw)
 
 
-meme_dict = fetch_memes(1000)
+meme_dict = fetch_memes(1)
 print(f"Found {len(meme_dict)} unique memes")
-print(meme_dict[77])
+print(meme_dict[4])
 
